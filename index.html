@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Aquarium - Your Virtual Fish Paradise 🐠</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        overflow: hidden;
+      }
+
+      .aquarium {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(to bottom, #1e293b, #020617);
+        overflow: hidden;
+        transition: all 3s ease;
+      }
+
+      .aquarium.day {
+        background: linear-gradient(to bottom, #D3E4FD, #0EA5E9);
+      }
+
+      .controls {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 10;
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .button {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        padding: 0.5rem 1rem;
+        color: white;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+        transition: all 0.2s;
+      }
+
+      .button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .stats-panel {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .scoreboard, .level, .coins {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        padding: 1rem;
+        border-radius: 0.375rem;
+        color: white;
+      }
+
+      .fish {
+        position: absolute;
+        transition: transform 0.3s;
+        cursor: pointer;
+        animation: swim 5s ease-in-out infinite;
+      }
+
+      .fish:hover {
+        filter: brightness(1.2);
+      }
+
+      .fish-name {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .fish:hover .fish-name {
+        opacity: 1;
+      }
+
+      .personality-bubble {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        color: #1e293b;
+        padding: 8px;
+        border-radius: 12px;
+        font-size: 14px;
+        white-space: nowrap;
+        z-index: 100;
+        animation: fadeInOut 4s ease-in-out;
+      }
+
+      @keyframes fadeInOut {
+        0%, 100% { opacity: 0; }
+        10%, 90% { opacity: 1; }
+      }
+
+      .food {
+        position: absolute;
+        width: 0.5rem;
+        height: 0.5rem;
+        background: #FCD34D;
+        border-radius: 50%;
+        animation: pulse 1s ease-in-out infinite;
+      }
+
+      .powerup {
+        position: absolute;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        animation: rotate 3s linear infinite;
+      }
+
+      .bubble {
+        position: absolute;
+        width: 0.75rem;
+        height: 0.75rem;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        animation: bubble 15s ease-in-out infinite;
+      }
+
+      .achievement {
+        position: fixed;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        animation: slideUp 0.5s ease-out;
+      }
+
+      .welcome-banner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        text-align: center;
+        z-index: 1000;
+        backdrop-filter: blur(8px);
+        animation: fadeOut 0.5s ease-in-out forwards;
+        animation-delay: 5s;
+      }
+
+      .welcome-banner h1 {
+        margin-bottom: 1rem;
+        font-size: 2rem;
+      }
+
+      .welcome-banner p {
+        margin-bottom: 0.5rem;
+      }
+
+      .daily-task {
+        position: fixed;
+        top: 5rem;
+        left: 1rem;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        backdrop-filter: blur(4px);
+        max-width: 300px;
+      }
+
+      .daily-task h3 {
+        margin-bottom: 0.5rem;
+        color: #60A5FA;
+      }
+
+      .daily-task .progress {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+        margin-top: 0.5rem;
+      }
+
+      .daily-task .progress-bar {
+        height: 100%;
+        background: #60A5FA;
+        border-radius: 2px;
+        transition: width 0.3s ease;
+      }
+
+      .store {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        padding: 2rem;
+        border-radius: 1rem;
+        color: white;
+        z-index: 1000;
+        display: none;
+        backdrop-filter: blur(8px);
+        max-width: 500px;
+        width: 90%;
+      }
+
+      .store h2 {
+        margin-bottom: 1rem;
+        color: #60A5FA;
+      }
+
+      .store-items {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .store-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .store-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .store-item.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .close-store {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1.5rem;
+      }
+
+      @keyframes swim {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+      }
+
+      @keyframes bubble {
+        0% { transform: translateY(100vh) scale(0); opacity: 0; }
+        50% { transform: translateY(50vh) scale(1); opacity: 1; }
+        100% { transform: translateY(-20px) scale(0); opacity: 0; }
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+      }
+
+      @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes slideUp {
+        from { transform: translate(-50%, 100%); opacity: 0; }
+        to { transform: translate(-50%, 0); opacity: 1; }
+      }
+
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; visibility: hidden; }
+      }
+
+      .task-panel {
+        position: fixed;
+        bottom: -300px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        border-radius: 15px 15px 0 0;
+        padding: 20px;
+        width: 300px;
+        transition: all 0.3s ease;
+        color: white;
+        z-index: 1000;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .task-panel.show {
+        bottom: 0;
+      }
+
+      .task-trigger {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.6);
+        padding: 10px 20px;
+        border-radius: 20px;
+        color: white;
+        cursor: pointer;
+        z-index: 999;
+        transition: all 0.3s ease;
+        user-select: none;
+      }
+
+      .task-trigger:hover {
+        background: rgba(0, 0, 0, 0.8);
+        transform: translateX(-50%) scale(1.1);
+      }
+
+      .task-trigger.active {
+        background: #60A5FA;
+      }
+
+      .task-section {
+        margin-bottom: 15px;
+      }
+
+      .task-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 5px;
+        transition: background 0.2s ease;
+      }
+
+      .task-section-header:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .task-section-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+
+      .task-section-content.expanded {
+        max-height: 500px;
+      }
+
+      .task-section-header .arrow {
+        transition: transform 0.3s ease;
+      }
+
+      .task-section-header.expanded .arrow {
+        transform: rotate(180deg);
+      }
+
+      .task-item {
+        margin: 10px 0;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .task-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #60A5FA;
+      }
+
+      .task-info {
+        flex-grow: 1;
+      }
+
+      .task-progress {
+        height: 5px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        margin-top: 5px;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: #60A5FA;
+        transition: width 0.3s ease;
+      }
+
+      .store-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+
+      .store-item {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .store-item:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .store-item.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .store-item img {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 10px;
+      }
+
+      .price-tag {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #60A5FA;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="welcome-banner" id="welcome-banner">
+      <h1>🐠 Interactive Aquarium 🐟</h1>
+      <p>Welcome to your personal aquarium!</p>
+      <p>Add fish, feed them, and watch them grow</p>
+      <p>Made with ❤️ and lots of bubbles 🫧</p>
+    </div>
+
+    <div class="task-trigger">📋 Tasks & Achievements</div>
+    <div class="task-panel">
+      <div class="task-section">
+        <div class="task-section-header">
+          <h3>Daily Tasks</h3>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="task-section-content" id="daily-tasks"></div>
+      </div>
+      <div class="task-section">
+        <div class="task-section-header">
+          <h3>Achievements</h3>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="task-section-content" id="achievements"></div>
+      </div>
+    </div>
+
+    <div class="daily-task" id="daily-task">
+      <h3>Daily Task 🎯</h3>
+      <div id="task-description">Loading task...</div>
+      <div class="progress">
+        <div class="progress-bar" id="task-progress"></div>
+      </div>
+    </div>
+
+    <div class="aquarium" id="aquarium">
+      <div class="controls">
+        <button class="button" onclick="game.addFish()">Add Fish 🐠</button>
+        <button class="button" onclick="game.addFood()">Feed Fish 🍞</button>
+        <button class="button" onclick="game.openStore()">Fish Store 🏪</button>
+        <button class="button" onclick="window.addCustomTask()">Add Task ✏️</button>
+      </div>
+      <div class="stats-panel">
+        <div class="scoreboard">
+          Score: <span id="score">0</span>
+        </div>
+        <div class="level">
+          Level: <span id="level">1</span>
+        </div>
+        <div class="coins">
+          Coins: <span id="coins">0</span>
+        </div>
+      </div>
+      <div id="achievements" class="achievements"></div>
+    </div>
+    <audio id="bubbleSound" src="sounds/bubble.mp3" preload="auto"></audio>
+    <audio id="eatSound" src="sounds/eat.mp3" preload="auto"></audio>
+    <audio id="levelUpSound" src="sounds/levelup.mp3" preload="auto"></audio>
+
+    <div class="store" id="store">
+      <button class="close-store" onclick="game.closeStore()">&times;</button>
+      <h2>🏪 Fish Store</h2>
+      <div class="store-items" id="store-items">
+        <!-- Items will be added dynamically -->
+      </div>
+    </div>
+
+    <script>
+      // Fish names and personalities
+      const fishNames = [
+        "Bubbles", "Splash", "Finn", "Wave", "Pearl", "Coral", "Neptune", "Marina",
+        "Azure", "Nemo", "Dory", "Sebastian", "Ariel", "Flounder", "Marlin"
+      ];
+
+      const fishPersonalities = [
+        "is doing a happy dance! 💃",
+        "wants more food! 🍞",
+        "is making bubble art! 🫧",
+        "is playing hide and seek! 🙈",
+        "is practicing their swimming tricks! 🎭",
+        "is feeling playful today! 🎮",
+        "is looking for friends! 👋",
+        "is dreaming of ocean adventures! 🌊"
+      ];
+
+      const storeItems = [
+        {
+          name: "Rare Fish Egg",
+          description: "Guaranteed rare or legendary fish!",
+          price: 500,
+          action: "spawnRareFish",
+          image: "🥚"
+        },
+        {
+          name: "Golden Fish",
+          description: "A magnificent golden fish that brings luck!",
+          price: 2000,
+          action: "spawnGoldenFish",
+          image: "✨"
+        },
+        {
+          name: "Rainbow Fish",
+          description: "A magical fish that changes colors!",
+          price: 1500,
+          action: "spawnRainbowFish",
+          image: "🌈"
+        },
+        {
+          name: "Deep Sea Fish",
+          description: "A mysterious fish from the deep ocean!",
+          price: 1200,
+          action: "spawnDeepSeaFish",
+          image: "🌊"
+        },
+        {
+          name: "Fish School Package",
+          description: "Spawns 5 fish of random types!",
+          price: 2000,
+          action: "spawnFishSchool",
+          image: "🐟"
+        },
+        {
+          name: "Color Change Potion",
+          description: "Change the color of all your fish!",
+          price: 300,
+          action: "changeColors",
+          image: "🎨"
+        },
+        {
+          name: "Speed Boost Charm",
+          description: "Make all fish swim faster!",
+          price: 800,
+          action: "permanentSpeed",
+          image: "⚡"
+        },
+        {
+          name: "Training Manual",
+          description: "Level up all your fish!",
+          price: 1000,
+          action: "levelUpAll",
+          image: "📚"
+        }
+      ];
+
+      const dailyTasks = [
+        {
+          name: "Rainbow Collection",
+          description: "Collect fish of 5 different colors",
+          target: 5,
+          type: "colors",
+          progress: 0,
+          hint: "Buy different colored fish from the store!"
+        },
+        {
+          name: "Legendary Quest",
+          description: "Get 3 legendary fish",
+          target: 3,
+          type: "legendary",
+          progress: 0,
+          hint: "Try your luck with Rare Fish Eggs!"
+        },
+        {
+          name: "Master Trainer",
+          description: "Level up 3 fish to level 2",
+          target: 3,
+          type: "level",
+          progress: 0,
+          hint: "Feed your fish regularly!"
+        },
+        {
+          name: "Power Collector",
+          description: "Use all types of power-ups",
+          target: 4,
+          type: "powerup",
+          progress: 0,
+          hint: "Watch for falling power-ups!"
+        },
+        {
+          name: "Night Explorer",
+          description: "Collect items during night time",
+          target: 5,
+          type: "nightCollect",
+          progress: 0,
+          hint: "Wait for night time to collect items!"
+        },
+        {
+          name: "Social Butterfly",
+          description: "Have 10 fish interact with each other",
+          target: 10,
+          type: "interactions",
+          progress: 0,
+          hint: "Keep your fish close to each other!"
+        },
+        {
+          name: "Speed Champion",
+          description: "Have 5 fish with speed boost",
+          target: 5,
+          type: "speedBoost",
+          progress: 0,
+          hint: "Use Speed Boost Charms!"
+        },
+        {
+          name: "Golden Fortune",
+          description: "Collect 1000 coins",
+          target: 1000,
+          type: "coins",
+          progress: 0,
+          hint: "Complete tasks and feed fish!"
+        }
+      ];
+
+      // Fish Class
+      class Fish {
+        constructor(type, color, size, special = null) {
+          this.element = document.createElement('div');
+          this.type = type;
+          this.color = color;
+          this.size = size;
+          this.special = special;
+          this.level = 1;
+          this.experience = 0;
+          this.direction = 1;
+          this.speed = Math.random() * 2 + 1;
+          this.name = fishNames[Math.floor(Math.random() * fishNames.length)];
+          this.personality = fishPersonalities[Math.floor(Math.random() * fishPersonalities.length)];
+          this.lastInteraction = 0;
+          this.initialize();
+          
+          if (special === 'rainbow') {
+            setInterval(() => {
+              this.color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+              this.element.innerHTML = this.createSVG();
+            }, 2000);
+          }
+          
+          if (special === 'golden') {
+            this.element.style.filter = 'brightness(1.5) sepia(1) hue-rotate(10deg)';
+          }
+          
+          if (special === 'deep-sea') {
+            this.element.style.filter = 'brightness(0.8) hue-rotate(240deg)';
+            this.speed *= 0.7;
+          }
+        }
+
+        createSVG() {
+          return `
+            <svg viewBox="0 0 100 50" style="width: 100%; height: 100%;">
+              <path d="M75 25C75 25 100 12.5 100 25C100 37.5 75 25 75 25ZM0 25C0 12.5 25 0 50 0C75 0 75 25 75 25C75 25 75 50 50 50C25 50 0 37.5 0 25Z" fill="${this.color}"/>
+              <circle cx="60" cy="15" r="3" fill="white"/>
+            </svg>
+          `;
+        }
+
+        initialize() {
+          this.element.className = 'fish';
+          this.element.innerHTML = this.createSVG();
+          this.element.style.width = this.size.width + 'px';
+          this.element.style.height = this.size.height + 'px';
+          this.setRandomPosition();
+          this.setupEventListeners();
+          const nameTag = document.createElement('div');
+          nameTag.className = 'fish-name';
+          nameTag.textContent = this.name;
+          this.element.appendChild(nameTag);
+        }
+
+        setRandomPosition() {
+          this.element.style.left = Math.random() * (window.innerWidth - 100) + 'px';
+          this.element.style.top = Math.random() * (window.innerHeight - 100) + 'px';
+        }
+
+        setupEventListeners() {
+          this.element.onclick = () => {
+            this.flip();
+            this.showPersonality();
+          };
+          this.startMovement();
+        }
+
+        flip() {
+          this.direction *= -1;
+          this.element.style.transform = `scaleX(${-this.direction})`;
+        }
+
+        startMovement() {
+          setInterval(() => {
+            const rect = this.element.getBoundingClientRect();
+            let x = rect.left + this.speed * this.direction;
+            
+            if (x > window.innerWidth - rect.width) {
+              x = window.innerWidth - rect.width;
+              this.flip();
+            } else if (x < 0) {
+              x = 0;
+              this.flip();
+            }
+            
+            this.element.style.left = x + 'px';
+          }, 16);
+        }
+
+        gainExperience(amount) {
+          this.experience += amount;
+          if (this.experience >= this.level * 10) {
+            this.levelUp();
+          }
+        }
+
+        levelUp() {
+          this.level++;
+          this.experience = 0;
+          this.element.style.filter = `brightness(${1 + this.level * 0.1})`;
+          game.showAchievement(`Fish evolved to level ${this.level}!`);
+        }
+
+        getPoints() {
+          const typeMultiplier = {
+            'legendary': 10,
+            'rare': 5,
+            'normal': 1
+          };
+          return typeMultiplier[this.type] * this.level;
+        }
+
+        showPersonality() {
+          const now = Date.now();
+          if (now - this.lastInteraction < 5000) return;
+          
+          this.lastInteraction = now;
+          const bubble = document.createElement('div');
+          bubble.className = 'personality-bubble';
+          bubble.textContent = `${this.name} ${this.personality}`;
+          
+          const rect = this.element.getBoundingClientRect();
+          bubble.style.left = `${rect.left}px`;
+          bubble.style.top = `${rect.top - 40}px`;
+          
+          document.body.appendChild(bubble);
+          setTimeout(() => bubble.remove(), 4000);
+        }
+      }
+
+      // PowerUp Class
+      class PowerUp {
+        constructor(type) {
+          this.element = document.createElement('div');
+          this.type = type;
+          this.initialize();
+        }
+
+        initialize() {
+          this.element.className = 'powerup';
+          this.element.style.background = this.getColor();
+          this.setRandomPosition();
+          this.setupEventListeners();
+          this.startFalling();
+        }
+
+        getColor() {
+          const colors = {
+            'speed': '#60A5FA',
+            'growth': '#34D399',
+            'multiply': '#F472B6'
+          };
+          return colors[this.type];
+        }
+
+        setRandomPosition() {
+          this.element.style.left = Math.random() * (window.innerWidth - 20) + 'px';
+          this.element.style.top = '0px';
+        }
+
+        setupEventListeners() {
+          this.element.onclick = () => this.collect();
+        }
+
+        startFalling() {
+          let posY = 0;
+          this.fallInterval = setInterval(() => {
+            posY += 1;
+            this.element.style.top = posY + 'px';
+
+            if (posY > window.innerHeight) {
+              this.remove();
+            }
+          }, 16);
+        }
+
+        collect() {
+          switch(this.type) {
+            case 'speed':
+              game.speedBoost();
+              break;
+            case 'growth':
+              game.growFish();
+              break;
+            case 'multiply':
+              game.multiplyFish();
+              break;
+          }
+          this.remove();
+        }
+
+        remove() {
+          clearInterval(this.fallInterval);
+          this.element.remove();
+        }
+      }
+
+      // Achievement System Class
+      class AchievementSystem {
+        constructor() {
+          this.achievements = {
+            'firstFish': { name: 'First Fish', description: 'Add your first fish', unlocked: false },
+            'feedingFrenzy': { name: 'Feeding Frenzy', description: 'Feed 10 fish at once', unlocked: false },
+            'legendary': { name: 'Legendary Catch', description: 'Get a legendary fish', unlocked: false },
+            'masterBreeder': { name: 'Master Breeder', description: 'Have 20 fish at once', unlocked: false },
+            'evolution': { name: 'Evolution', description: 'Level up a fish to level 5', unlocked: false }
+          };
+          this.load();
+        }
+
+        load() {
+          const saved = localStorage.getItem('aquariumAchievements');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            Object.keys(parsed).forEach(key => {
+              if (this.achievements[key]) {
+                this.achievements[key].unlocked = parsed[key].unlocked;
+              }
+            });
+          }
+        }
+
+        save() {
+          localStorage.setItem('aquariumAchievements', JSON.stringify(this.achievements));
+        }
+
+        unlock(id) {
+          if (this.achievements[id] && !this.achievements[id].unlocked) {
+            this.achievements[id].unlocked = true;
+            this.save();
+            this.showNotification(this.achievements[id].name);
+          }
+        }
+
+        showNotification(name) {
+          const notification = document.createElement('div');
+          notification.className = 'achievement';
+          notification.textContent = `Achievement Unlocked: ${name}`;
+          document.body.appendChild(notification);
+          setTimeout(() => notification.remove(), 3000);
+        }
+
+        checkProgress(game) {
+          if (game.fishCount === 1) this.unlock('firstFish');
+          if (game.fishCount >= 20) this.unlock('masterBreeder');
+          if (game.hasLegendaryFish) this.unlock('legendary');
+          if (game.maxFishLevel >= 5) this.unlock('evolution');
+          if (game.simultaneousFeeds >= 10) this.unlock('feedingFrenzy');
+        }
+      }
+
+      // Game Class
+      class Game {
+        constructor() {
+          this.score = parseInt(localStorage.getItem('aquariumScore')) || 0;
+          this.level = parseInt(localStorage.getItem('aquariumLevel')) || 1;
+          this.coins = parseInt(localStorage.getItem('aquariumCoins')) || 0;
+          this.fishes = [];
+          this.isNight = false;
+          this.achievements = new AchievementSystem();
+          this.taskHistory = JSON.parse(localStorage.getItem('aquariumTaskHistory')) || [];
+          this.customTasks = JSON.parse(localStorage.getItem('aquariumCustomTasks')) || [];
+          this.dailyTask = this.generateDailyTask();
+          this.initialize();
+        }
+
+        initialize() {
+          this.aquarium = document.getElementById('aquarium');
+          this.scoreElement = document.getElementById('score');
+          this.levelElement = document.getElementById('level');
+          this.coinsElement = document.getElementById('coins');
+          this.updateUI();
+          this.startBubbles();
+          this.startPowerUps();
+          this.addInitialFish();
+          this.updateDailyTask();
+          this.startDayNightCycle();
+          this.setupTaskPanel();
+        }
+
+        updateUI() {
+          this.scoreElement.textContent = this.score;
+          this.levelElement.textContent = this.level;
+          this.coinsElement.textContent = this.coins;
+        }
+
+        addInitialFish() {
+          for (let i = 0; i < 3; i++) {
+            this.addFish();
+          }
+        }
+
+        addFish(forcedType = null, forcedColor = null, forcedSize = null, special = null) {
+          const fishTypes = ['normal', 'rare', 'legendary'];
+          const fishColors = ['#F97316', '#0EA5E9', '#F2FCE2', '#60A5FA', '#C084FC'];
+          const fishSizes = {
+            sm: { width: 32, height: 16 },
+            md: { width: 48, height: 24 },
+            lg: { width: 64, height: 32 }
+          };
+
+          const type = forcedType || fishTypes[Math.floor(Math.random() * fishTypes.length)];
+          const color = forcedColor || fishColors[Math.floor(Math.random() * fishColors.length)];
+          const size = forcedSize || fishSizes[Object.keys(fishSizes)[Math.floor(Math.random() * 3)]];
+
+          const fish = new Fish(type, color, size, special);
+          this.fishes.push(fish);
+          this.aquarium.appendChild(fish.element);
+          
+          let message = `New ${type} fish added!`;
+          if (special) {
+            message = `✨ Special ${special} fish has arrived! ✨`;
+          }
+          this.showToast(message);
+          
+          this.checkTaskProgress();
+        }
+
+        addFood() {
+          const food = document.createElement('div');
+          food.className = 'food';
+          food.style.left = Math.random() * (window.innerWidth - 20) + 'px';
+          food.style.top = '0px';
+          this.aquarium.appendChild(food);
+
+          let posY = 0;
+          let simultaneousFeeds = 0;
+          const fall = setInterval(() => {
+            posY += 2;
+            food.style.top = posY + 'px';
+
+            this.fishes.forEach(fish => {
+              const fishRect = fish.element.getBoundingClientRect();
+              const foodRect = food.getBoundingClientRect();
+              
+              const distance = Math.sqrt(
+                Math.pow(fishRect.x - foodRect.x, 2) + 
+                Math.pow(fishRect.y - foodRect.y, 2)
+              );
+
+              if (distance < 30) {
+                const points = fish.getPoints();
+                this.score += points;
+                this.coins += Math.ceil(points / 2);
+                this.updateUI();
+                localStorage.setItem('aquariumScore', this.score);
+                localStorage.setItem('aquariumCoins', this.coins);
+                
+                fish.gainExperience(1);
+                simultaneousFeeds++;
+                
+                if (simultaneousFeeds >= 10) {
+                  this.achievements.unlock('feedingFrenzy');
+                }
+
+                this.playSound('eatSound');
+                this.showToast(`+${points} points`);
+                clearInterval(fall);
+                food.remove();
+                return;
+              }
+            });
+
+            if (posY > window.innerHeight) {
+              clearInterval(fall);
+              food.remove();
+            }
+          }, 50);
+          if (this.dailyTask.type === 'feed') {
+            this.dailyTask.progress++;
+            this.updateDailyTask();
+          }
+        }
+
+        startBubbles() {
+          setInterval(() => {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.style.left = Math.random() * 100 + '%';
+            this.aquarium.appendChild(bubble);
+            this.playSound('bubbleSound');
+            setTimeout(() => bubble.remove(), 15000);
+          }, 2000);
+        }
+
+        startPowerUps() {
+          setInterval(() => {
+            if (Math.random() < 0.3) {
+              const types = ['speed', 'growth', 'multiply'];
+              const type = types[Math.floor(Math.random() * types.length)];
+              const powerup = new PowerUp(type);
+              this.aquarium.appendChild(powerup.element);
+            }
+          }, 10000);
+        }
+
+        speedBoost() {
+          this.fishes.forEach(fish => {
+            fish.speed *= 1.5;
+            setTimeout(() => fish.speed /= 1.5, 5000);
+          });
+          this.showToast('Speed Boost activated!');
+          if (this.dailyTask.type === 'powerCollector') {
+            this.collectedPowerUps.add('speed');
+            this.checkTaskProgress();
+          }
+        }
+
+        growFish() {
+          this.fishes.forEach(fish => {
+            const currentWidth = parseInt(fish.element.style.width);
+            const currentHeight = parseInt(fish.element.style.height);
+            fish.element.style.width = (currentWidth * 1.2) + 'px';
+            fish.element.style.height = (currentHeight * 1.2) + 'px';
+          });
+          this.showToast('Fish Growth activated!');
+          if (this.dailyTask.type === 'powerCollector') {
+            this.collectedPowerUps.add('growth');
+            this.checkTaskProgress();
+          }
+        }
+
+        multiplyFish() {
+          const fishCount = this.fishes.length;
+          for (let i = 0; i < Math.min(fishCount, 3); i++) {
+            this.addFish();
+          }
+          this.showToast('Fish Multiplication activated!');
+          if (this.dailyTask.type === 'powerCollector') {
+            this.collectedPowerUps.add('multiply');
+            this.checkTaskProgress();
+          }
+        }
+
+        startDayNightCycle() {
+          setInterval(() => {
+            const shouldBeDay = Math.random() < 0.5;
+            this.aquarium.classList.toggle('day', shouldBeDay);
+          }, 30000); // Change every 30 seconds
+        }
+
+        playSound(soundId) {
+          const sound = document.getElementById(soundId);
+          if (sound) {
+            sound.currentTime = 0;
+            sound.play().catch(() => {});
+          }
+        }
+
+        showToast(message) {
+          const toast = document.createElement('div');
+          toast.style.position = 'fixed';
+          toast.style.bottom = '1rem';
+          toast.style.left = '50%';
+          toast.style.transform = 'translateX(-50%)';
+          toast.style.background = 'rgba(0, 0, 0, 0.8)';
+          toast.style.color = 'white';
+          toast.style.padding = '0.5rem 1rem';
+          toast.style.borderRadius = '0.375rem';
+          toast.style.zIndex = '100';
+          toast.style.animation = 'slideUp 0.3s ease-out';
+          toast.innerHTML = message; // Allow HTML for emojis
+          
+          document.body.appendChild(toast);
+          setTimeout(() => {
+            toast.style.animation = 'slideDown 0.3s ease-in';
+            setTimeout(() => toast.remove(), 300);
+          }, 2700);
+        }
+
+        generateDailyTask() {
+          const tasks = [
+            { 
+              description: "Create a Rainbow School: Have fish of 5 different colors", 
+              target: 5, 
+              type: "rainbow", 
+              progress: 0,
+              hint: "Try adding more fish to get different colors!"
+            },
+            { 
+              description: "The Legendary Quest: Get 3 legendary fish", 
+              target: 3, 
+              type: "legendary", 
+              progress: 0,
+              hint: "Keep adding fish for a chance to get legendary ones!"
+            },
+            { 
+              description: "Master Trainer: Level up 3 fish to level 2", 
+              target: 3, 
+              type: "masterTrainer", 
+              progress: 0,
+              hint: "Feed your fish to help them level up!"
+            },
+            { 
+              description: "Power Collector: Use all types of power-ups", 
+              target: 3, 
+              type: "powerCollector", 
+              progress: 0,
+              hint: "Watch for falling power-ups of different colors!"
+            },
+            { 
+              description: "Night Shift: Keep the aquarium in night mode for 2 minutes", 
+              target: 120, 
+              type: "nightShift", 
+              progress: 0,
+              hint: "Wait for the aquarium to change to night mode!"
+            }
+          ];
+
+          // Add custom tasks if any
+          tasks.push(...this.customTasks);
+          
+          const today = new Date().toDateString();
+          const savedTask = localStorage.getItem('aquariumDailyTask');
+          
+          if (savedTask) {
+            const parsed = JSON.parse(savedTask);
+            if (parsed.date === today) {
+              return parsed.task;
+            }
+          }
+          
+          // Don't repeat recent tasks
+          const validTasks = tasks.filter(task => 
+            !this.taskHistory.slice(-3).some(hist => hist.type === task.type)
+          );
+          
+          const task = validTasks[Math.floor(Math.random() * validTasks.length)];
+          this.taskHistory.push(task);
+          if (this.taskHistory.length > 10) this.taskHistory.shift();
+          
+          localStorage.setItem('aquariumTaskHistory', JSON.stringify(this.taskHistory));
+          localStorage.setItem('aquariumDailyTask', JSON.stringify({ date: today, task }));
+          return task;
+        }
+
+        addCustomTask(description, target, type) {
+          const newTask = {
+            description,
+            target: parseInt(target),
+            type,
+            progress: 0,
+            hint: "Custom task created by user",
+            isCustom: true
+          };
+          
+          this.customTasks.push(newTask);
+          localStorage.setItem('aquariumCustomTasks', JSON.stringify(this.customTasks));
+          this.showToast('Custom task added! It will appear in future daily tasks.');
+        }
+
+        updateDailyTask() {
+          const taskDesc = document.getElementById('task-description');
+          const progressBar = document.getElementById('task-progress');
+          
+          taskDesc.textContent = `${this.dailyTask.description} (${this.dailyTask.progress}/${this.dailyTask.target})`;
+          if (this.dailyTask.hint) {
+            taskDesc.innerHTML += `<br><small style="color: #60A5FA">${this.dailyTask.hint}</small>`;
+          }
+          
+          const progress = (this.dailyTask.progress / this.dailyTask.target) * 100;
+          progressBar.style.width = `${progress}%`;
+          
+          if (this.dailyTask.progress >= this.dailyTask.target) {
+            this.showToast('🎉 Daily Task Completed! +100 coins 🎉');
+            this.coins += 100;
+            this.updateUI();
+            localStorage.setItem('aquariumCoins', this.coins);
+            this.dailyTask = this.generateDailyTask();
+            this.updateDailyTask();
+          }
+        }
+
+        checkTaskProgress() {
+          switch (this.dailyTask.type) {
+            case 'rainbow':
+              const uniqueColors = new Set(this.fishes.map(fish => fish.color));
+              this.dailyTask.progress = uniqueColors.size;
+              break;
+            
+            case 'legendary':
+              this.dailyTask.progress = this.fishes.filter(fish => 
+                fish.type === 'legendary'
+              ).length;
+              break;
+            
+            case 'masterTrainer':
+              this.dailyTask.progress = this.fishes.filter(fish => 
+                fish.level >= 2
+              ).length;
+              break;
+            
+            case 'powerCollector':
+              if (!this.collectedPowerUps) this.collectedPowerUps = new Set();
+              this.dailyTask.progress = this.collectedPowerUps.size;
+              break;
+            
+            case 'nightShift':
+              if (this.aquarium.classList.contains('day')) {
+                this.dailyTask.progress = 0;
+              } else {
+                this.dailyTask.progress = Math.min(
+                  this.dailyTask.progress + 1,
+                  this.dailyTask.target
+                );
+              }
+              break;
+          }
+          
+          this.updateDailyTask();
+        }
+
+        levelUp() {
+          this.level++;
+          this.levelElement.textContent = this.level;
+          this.playSound('levelUpSound');
+          if (this.dailyTask.type === 'level' && this.level >= this.dailyTask.target) {
+            this.dailyTask.progress = this.level;
+            this.updateDailyTask();
+          }
+        }
+
+        collectPowerup() {
+          if (this.dailyTask.type === 'powerup') {
+            this.dailyTask.progress++;
+            this.updateDailyTask();
+          }
+        }
+
+        openStore() {
+          const store = document.getElementById('store');
+          const storeItems = document.getElementById('store-items');
+          storeItems.innerHTML = '';
+          storeItems.className = 'store-container';
+
+          storeItems.forEach(item => {
+            const itemElement = document.createElement('div');
+            itemElement.className = `store-item ${this.coins < item.price ? 'disabled' : ''}`;
+            itemElement.innerHTML = `
+              <div class="price-tag">${item.price} 🪙</div>
+              <div class="store-item-image">${item.image}</div>
+              <h3>${item.name}</h3>
+              <p>${item.description}</p>
+            `;
+            
+            if (this.coins >= item.price) {
+              itemElement.onclick = () => this.purchaseItem(item);
+            }
+            
+            storeItems.appendChild(itemElement);
+          });
+
+          store.style.display = 'block';
+        }
+
+        closeStore() {
+          document.getElementById('store').style.display = 'none';
+        }
+
+        purchaseItem(item) {
+          if (this.coins < item.price) return;
+
+          this.coins -= item.price;
+          this.updateUI();
+          localStorage.setItem('aquariumCoins', this.coins);
+
+          switch (item.action) {
+            case 'spawnRareFish':
+              const type = Math.random() < 0.3 ? 'legendary' : 'rare';
+              this.addFish(type);
+              break;
+            case 'levelUpAll':
+              this.fishes.forEach(fish => {
+                fish.level++;
+                fish.element.style.filter = `brightness(${1 + fish.level * 0.1})`;
+              });
+              break;
+            case 'changeColors':
+              const newColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+              this.fishes.forEach(fish => {
+                fish.color = newColor;
+                fish.element.innerHTML = fish.createSVG();
+              });
+              break;
+            case 'permanentSpeed':
+              this.fishes.forEach(fish => {
+                fish.speed *= 1.5;
+              });
+              break;
+            case 'spawnGoldenFish':
+              this.addFish('legendary', '#FFD700', null, 'golden');
+              break;
+            case 'spawnRainbowFish':
+              this.addFish('rare', '#FF69B4', null, 'rainbow');
+              break;
+            case 'spawnDeepSeaFish':
+              this.addFish('rare', '#000080', null, 'deep-sea');
+              break;
+            case 'spawnFishSchool':
+              for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                  const type = Math.random() < 0.2 ? 'rare' : 'normal';
+                  this.addFish(type);
+                }, i * 500);
+              }
+              break;
+          }
+
+          this.showToast(`Successfully purchased ${item.name}! ✨`);
+          this.closeStore();
+        }
+
+        setupTaskPanel() {
+          const trigger = document.querySelector('.task-trigger');
+          const panel = document.querySelector('.task-panel');
+          let isPanelVisible = false;
+            
+          // Click to show/hide task panel
+          trigger.addEventListener('click', () => {
+            isPanelVisible = !isPanelVisible;
+            panel.classList.toggle('show');
+            trigger.classList.toggle('active');
+          });
+            
+          // Close panel when clicking outside
+          document.addEventListener('click', (e) => {
+            if (isPanelVisible && 
+                !panel.contains(e.target) && 
+                !trigger.contains(e.target)) {
+              isPanelVisible = false;
+              panel.classList.remove('show');
+              trigger.classList.remove('active');
+            }
+          });
+
+          // Setup collapsible sections
+          const sections = document.querySelectorAll('.task-section-header');
+          sections.forEach(section => {
+            section.addEventListener('click', () => {
+              const content = section.nextElementSibling;
+              const isExpanded = content.classList.contains('expanded');
+                
+              // Collapse all sections first
+              document.querySelectorAll('.task-section-content').forEach(c => {
+                c.classList.remove('expanded');
+              });
+              document.querySelectorAll('.task-section-header').forEach(h => {
+                h.classList.remove('expanded');
+              });
+                
+              // Expand clicked section if it wasn't expanded
+              if (!isExpanded) {
+                content.classList.add('expanded');
+                section.classList.add('expanded');
+              }
+            });
+          });
+            
+          this.updateTaskPanel();
+        }
+
+        updateTaskPanel() {
+          const dailyTasksContainer = document.getElementById('daily-tasks');
+          const achievementsContainer = document.getElementById('achievements');
+            
+          // Update daily tasks
+          dailyTasksContainer.innerHTML = '';
+          dailyTasks.forEach((task, index) => {
+            const taskElement = document.createElement('div');
+            taskElement.className = 'task-item';
+            const progress = (task.progress / task.target) * 100;
+            
+            taskElement.innerHTML = `
+              <input type="checkbox" class="task-checkbox" 
+                ${progress >= 100 ? 'checked' : ''} 
+                onclick="return false;">
+              <div class="task-info">
+                <div>${task.name}</div>
+                <small>${task.description}</small>
+                <div class="task-progress">
+                  <div class="progress-bar" style="width: ${progress}%"></div>
+                </div>
+                <small class="hint">${task.hint}</small>
+              </div>
+            `;
+            
+            dailyTasksContainer.appendChild(taskElement);
+          });
+
+          // Expand first section by default
+          const firstSection = document.querySelector('.task-section-header');
+          const firstContent = document.querySelector('.task-section-content');
+          if (firstSection && firstContent) {
+            firstSection.classList.add('expanded');
+            firstContent.classList.add('expanded');
+          }
+        }
+      }
+
+      // Initialize game
+      const game = new Game();
+
+      // Add task checking interval
+      setInterval(() => game.checkTaskProgress(), 1000);
+
+      // Add custom task creation to window
+      window.addCustomTask = function() {
+        const description = prompt('What should the fish do? (e.g., "Collect 5 power-ups")');
+        if (!description) return;
+
+        const target = prompt('How many times should they do it? (enter a number)');
+        if (!target || isNaN(target)) {
+          game.showToast('Please enter a valid number! 🔢');
+          return;
+        }
+
+        const type = description.toLowerCase().replace(/[^a-z0-9]/g, '');
+        game.addCustomTask(description, target, type);
+      };
+
+      // Add welcome message with typing effect
+      const welcomeText = document.querySelector('.welcome-banner p:first-of-type');
+      const originalText = welcomeText.textContent;
+      welcomeText.textContent = '';
+      let charIndex = 0;
+
+      function typeText() {
+        if (charIndex < originalText.length) {
+          welcomeText.textContent += originalText.charAt(charIndex);
+          charIndex++;
+          setTimeout(typeText, 50);
+        }
+      }
+
+      typeText();
+    </script>
+  </body>
+</html>
